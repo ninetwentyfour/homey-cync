@@ -76,8 +76,7 @@ class CyncApp extends homey_1.default.App {
         return this.client;
     }
     hasCredentials() {
-        return Boolean(this.homey.settings.get(SETTINGS_KEY_EMAIL) &&
-            this.homey.settings.get(SETTINGS_KEY_PASSWORD));
+        return Boolean(this.homey.settings.get(SETTINGS_KEY_EMAIL) && this.homey.settings.get(SETTINGS_KEY_PASSWORD));
     }
     getCurrentEmail() {
         return this.homey.settings.get(SETTINGS_KEY_EMAIL) ?? null;

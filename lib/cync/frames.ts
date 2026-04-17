@@ -70,7 +70,7 @@ export interface ParsedOuterFrame {
 
 export function tryParseOuterFrame(buf: Buffer): ParsedOuterFrame | null {
   if (buf.length < 5) return null;
-  const info = buf[0]!;
+  const info = buf[0];
   const payloadLength = buf.readUInt32BE(1);
   const total = 5 + payloadLength;
   if (buf.length < total) return null;
@@ -83,7 +83,11 @@ export function tryParseOuterFrame(buf: Buffer): ParsedOuterFrame | null {
   };
 }
 
-function buildOuterHeader(messageType: MessageType, isResponse: boolean, payloadLength: number): Buffer {
+function buildOuterHeader(
+  messageType: MessageType,
+  isResponse: boolean,
+  payloadLength: number,
+): Buffer {
   let info = (messageType << 4) | PROTOCOL_VERSION;
   if (isResponse) info |= 0x08;
   const header = Buffer.alloc(5);
@@ -156,7 +160,7 @@ function unescape7e(body: Buffer): Buffer {
       out.push(0x7e);
       i++;
     } else {
-      out.push(body[i]!);
+      out.push(body[i]);
     }
   }
   return Buffer.from(out);
@@ -208,7 +212,11 @@ export function buildQueryDeviceStatusInner(): Buffer {
   const body = Buffer.from([0x00, 0x00, 0xff, 0xff, 0x00, 0x00]);
   const lenLe = Buffer.alloc(2);
   lenLe.writeUInt16LE(body.length, 0);
-  const packetBody = Buffer.concat([Buffer.from([PipeCommand.QUERY_DEVICE_STATUS_PAGES]), lenLe, body]);
+  const packetBody = Buffer.concat([
+    Buffer.from([PipeCommand.QUERY_DEVICE_STATUS_PAGES]),
+    lenLe,
+    body,
+  ]);
   const cksum = Buffer.from([checksum(packetBody)]);
   const assembled = Buffer.concat([seq, direction, packetBody, cksum]);
   const escaped = escape7e(assembled);
@@ -311,7 +319,7 @@ export function parsePipeStatusPages(payload: Buffer): ParsedStatusDevice[] | nu
   inner = unescape7e(inner);
   inner = inner.subarray(4); // drop seq
   // skip direction byte at [0], command at [1]
-  if (inner[1] !== PipeCommand.QUERY_DEVICE_STATUS_PAGES) return null;
+  if ((inner[1] as PipeCommand) !== PipeCommand.QUERY_DEVICE_STATUS_PAGES) return null;
   const dataLength = inner.readUInt16LE(2);
   const frameBody = inner.subarray(1, 1 + 2 + dataLength); // command + len + data
   const data = frameBody.subarray(3);
@@ -326,9 +334,9 @@ export function parsePipeStatusPages(payload: Buffer): ParsedStatusDevice[] | nu
       meshId: slice.readUInt16LE(0),
       isOnline: slice[3] === 1,
       isOn: slice[8] === 1,
-      brightness: slice[12]!,
-      colorMode: slice[16]!,
-      rgb: [slice[20]!, slice[21]!, slice[22]!],
+      brightness: slice[12],
+      colorMode: slice[16],
+      rgb: [slice[20], slice[21], slice[22]],
     });
     cursor = cursor.subarray(24);
   }

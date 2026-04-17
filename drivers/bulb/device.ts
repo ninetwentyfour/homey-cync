@@ -15,73 +15,94 @@ const EFFECT_ANIMATIONS: Record<EffectName, { frames: Frame[]; intervalMs: numbe
       { hue: 0.08, saturation: 0.85, dim: 0.75 },
       { hue: 0.09, saturation: 0.9, dim: 0.95 },
       { hue: 0.07, saturation: 0.8, dim: 0.85 },
-      { hue: 0.10, saturation: 0.85, dim: 0.7 },
+      { hue: 0.1, saturation: 0.85, dim: 0.7 },
     ],
     intervalMs: 1500,
   },
   rainbow: {
     // ~12 second full cycle
     frames: [
-      { hue: 0.00, saturation: 1 }, { hue: 0.08, saturation: 1 },
-      { hue: 0.17, saturation: 1 }, { hue: 0.33, saturation: 1 },
-      { hue: 0.50, saturation: 1 }, { hue: 0.67, saturation: 1 },
-      { hue: 0.83, saturation: 1 }, { hue: 0.92, saturation: 1 },
+      { hue: 0.0, saturation: 1 },
+      { hue: 0.08, saturation: 1 },
+      { hue: 0.17, saturation: 1 },
+      { hue: 0.33, saturation: 1 },
+      { hue: 0.5, saturation: 1 },
+      { hue: 0.67, saturation: 1 },
+      { hue: 0.83, saturation: 1 },
+      { hue: 0.92, saturation: 1 },
     ],
     intervalMs: 1500,
   },
   cyber: {
     frames: [
-      { hue: 0.50, saturation: 1 }, { hue: 0.83, saturation: 1 },
-      { hue: 0.92, saturation: 1 }, { hue: 0.75, saturation: 1 },
+      { hue: 0.5, saturation: 1 },
+      { hue: 0.83, saturation: 1 },
+      { hue: 0.92, saturation: 1 },
+      { hue: 0.75, saturation: 1 },
     ],
     intervalMs: 2000,
   },
   fireworks: {
     frames: [
-      { hue: 0.00, saturation: 1, dim: 1 }, { hue: 0.15, saturation: 1, dim: 1 },
-      { hue: 0.55, saturation: 1, dim: 1 }, { hue: 0.80, saturation: 1, dim: 1 },
-      { hue: 0.35, saturation: 1, dim: 1 }, { hue: 0.95, saturation: 1, dim: 1 },
+      { hue: 0.0, saturation: 1, dim: 1 },
+      { hue: 0.15, saturation: 1, dim: 1 },
+      { hue: 0.55, saturation: 1, dim: 1 },
+      { hue: 0.8, saturation: 1, dim: 1 },
+      { hue: 0.35, saturation: 1, dim: 1 },
+      { hue: 0.95, saturation: 1, dim: 1 },
     ],
     intervalMs: 1200,
   },
   volcanic: {
     frames: [
-      { hue: 0.00, saturation: 1 }, { hue: 0.05, saturation: 1 },
-      { hue: 0.10, saturation: 1 }, { hue: 0.03, saturation: 1 },
+      { hue: 0.0, saturation: 1 },
+      { hue: 0.05, saturation: 1 },
+      { hue: 0.1, saturation: 1 },
+      { hue: 0.03, saturation: 1 },
     ],
     intervalMs: 2500,
   },
   aurora: {
     frames: [
-      { hue: 0.33, saturation: 0.8 }, { hue: 0.45, saturation: 0.8 },
-      { hue: 0.55, saturation: 0.8 }, { hue: 0.70, saturation: 0.7 },
+      { hue: 0.33, saturation: 0.8 },
+      { hue: 0.45, saturation: 0.8 },
+      { hue: 0.55, saturation: 0.8 },
+      { hue: 0.7, saturation: 0.7 },
     ],
     intervalMs: 3000,
   },
   happy_holidays: {
-    frames: [{ hue: 0.00, saturation: 1 }, { hue: 0.33, saturation: 1 }],
+    frames: [
+      { hue: 0.0, saturation: 1 },
+      { hue: 0.33, saturation: 1 },
+    ],
     intervalMs: 2500,
   },
   red_white_blue: {
     frames: [
-      { hue: 0.00, saturation: 1 },
-      { hue: 0.00, saturation: 0 },
+      { hue: 0.0, saturation: 1 },
+      { hue: 0.0, saturation: 0 },
       { hue: 0.67, saturation: 1 },
     ],
     intervalMs: 2500,
   },
   vegas: {
     frames: [
-      { hue: 0.00, saturation: 1 }, { hue: 0.17, saturation: 1 },
-      { hue: 0.33, saturation: 1 }, { hue: 0.50, saturation: 1 },
-      { hue: 0.67, saturation: 1 }, { hue: 0.83, saturation: 1 },
+      { hue: 0.0, saturation: 1 },
+      { hue: 0.17, saturation: 1 },
+      { hue: 0.33, saturation: 1 },
+      { hue: 0.5, saturation: 1 },
+      { hue: 0.67, saturation: 1 },
+      { hue: 0.83, saturation: 1 },
     ],
     intervalMs: 800,
   },
   party_time: {
     frames: [
-      { hue: 0.10, saturation: 1 }, { hue: 0.30, saturation: 1 },
-      { hue: 0.55, saturation: 1 }, { hue: 0.80, saturation: 1 },
+      { hue: 0.1, saturation: 1 },
+      { hue: 0.3, saturation: 1 },
+      { hue: 0.55, saturation: 1 },
+      { hue: 0.8, saturation: 1 },
     ],
     intervalMs: 700,
   },
@@ -122,7 +143,8 @@ export default class BulbDevice extends Homey.Device {
       async (values: { light_hue?: number; light_saturation?: number }) => {
         this.stopEffectAnimation();
         if (typeof values.light_hue === 'number') this.lastHue = values.light_hue;
-        if (typeof values.light_saturation === 'number') this.lastSaturation = values.light_saturation;
+        if (typeof values.light_saturation === 'number')
+          this.lastSaturation = values.light_saturation;
         const dim = (this.getCapabilityValue('dim') as number | null) ?? 1;
         const [r, g, b] = hsvToRgb(this.lastHue, this.lastSaturation, dim);
         await this.client().setColorRgb(this.asCyncDevice(), r, g, b);
@@ -161,9 +183,9 @@ export default class BulbDevice extends Homey.Device {
       await this.setAvailable();
       // Fire a status query so the UI reflects the bulb's current state
       // rather than Homey defaults (all sliders at zero / white).
-      client.queryAllDevices(this.asCyncDevice()).catch((err) =>
-        this.error('initial state query failed:', err),
-      );
+      client
+        .queryAllDevices(this.asCyncDevice())
+        .catch((err) => this.error('initial state query failed:', err));
     } catch (err) {
       this.error('Cync client unavailable at onInit:', err);
       await this.setUnavailable('Cync service is reconnecting…');
@@ -177,7 +199,7 @@ export default class BulbDevice extends Homey.Device {
     this.setCapabilityValue('light_mode', 'color').catch(() => undefined);
 
     const tick = () => {
-      const frame = anim.frames[this.effectFrameIndex % anim.frames.length]!;
+      const frame = anim.frames[this.effectFrameIndex % anim.frames.length];
       this.effectFrameIndex++;
       this.setCapabilityValue('light_hue', frame.hue).catch(() => undefined);
       this.setCapabilityValue('light_saturation', frame.saturation).catch(() => undefined);
@@ -205,7 +227,7 @@ export default class BulbDevice extends Homey.Device {
     this.effectFrameIndex = 0;
     const device = this.asCyncDevice();
     const tick = async () => {
-      const [r, g, b] = rgbFrames[this.effectFrameIndex % rgbFrames.length]!;
+      const [r, g, b] = rgbFrames[this.effectFrameIndex % rgbFrames.length];
       this.effectFrameIndex++;
       try {
         await this.client().setColorRgb(device, r, g, b);
@@ -312,9 +334,15 @@ function rgbToHsv(r: number, g: number, b: number): [number, number, number] {
   let h = 0;
   if (d !== 0) {
     switch (max) {
-      case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6; break;
-      case gn: h = ((bn - rn) / d + 2) / 6; break;
-      case bn: h = ((rn - gn) / d + 4) / 6; break;
+      case rn:
+        h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
+        break;
+      case gn:
+        h = ((bn - rn) / d + 2) / 6;
+        break;
+      case bn:
+        h = ((rn - gn) / d + 4) / 6;
+        break;
     }
   }
   return [h, s, v];
@@ -330,12 +358,36 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
   let g = 0;
   let b = 0;
   switch (i % 6) {
-    case 0: r = v; g = t; b = p; break;
-    case 1: r = q; g = v; b = p; break;
-    case 2: r = p; g = v; b = t; break;
-    case 3: r = p; g = q; b = v; break;
-    case 4: r = t; g = p; b = v; break;
-    case 5: r = v; g = p; b = q; break;
+    case 0:
+      r = v;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = v;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = v;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = v;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = v;
+      break;
+    case 5:
+      r = v;
+      g = p;
+      b = q;
+      break;
   }
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }

@@ -13,7 +13,11 @@ const BASE_URL = 'https://api.gelighting.com';
 export class CyncAuthError extends Error {
   constructor(
     message: string,
-    public readonly kind: 'needs_otp' | 'invalid_otp' | 'invalid_credentials' | 'network' = 'network',
+    public readonly kind:
+      | 'needs_otp'
+      | 'invalid_otp'
+      | 'invalid_credentials'
+      | 'network' = 'network',
   ) {
     super(message);
     this.name = 'CyncAuthError';
@@ -54,7 +58,10 @@ export class CyncAuth {
       this.logger.log(`OTP trigger response: HTTP ${otpRes.status}`);
       if (otpRes.status !== 200) {
         this.logger.error('OTP trigger failed:', otpRes.data);
-        throw new CyncAuthError(`Failed to send verification code (HTTP ${otpRes.status})`, 'network');
+        throw new CyncAuthError(
+          `Failed to send verification code (HTTP ${otpRes.status})`,
+          'network',
+        );
       }
       this.logger.log('OTP email triggered successfully');
       throw new CyncAuthError(
@@ -87,7 +94,10 @@ export class CyncAuth {
       throw new CyncAuthError('Invalid verification code.', 'invalid_otp');
     }
     if (res.status !== 200) {
-      throw new CyncAuthError(`OTP verification failed (HTTP ${res.status})`, 'invalid_credentials');
+      throw new CyncAuthError(
+        `OTP verification failed (HTTP ${res.status})`,
+        'invalid_credentials',
+      );
     }
     return this.toStoredTokens(res.data as AuthResponse);
   }
@@ -110,7 +120,10 @@ export class CyncAuth {
     };
   }
 
-  private async post(path: string, body: Record<string, unknown>): Promise<{ status: number; data: unknown }> {
+  private async post(
+    path: string,
+    body: Record<string, unknown>,
+  ): Promise<{ status: number; data: unknown }> {
     try {
       const res = await axios.post(`${BASE_URL}${path}`, body, {
         headers: { 'Content-Type': 'application/json' },

@@ -11,73 +11,94 @@ const EFFECT_ANIMATIONS = {
             { hue: 0.08, saturation: 0.85, dim: 0.75 },
             { hue: 0.09, saturation: 0.9, dim: 0.95 },
             { hue: 0.07, saturation: 0.8, dim: 0.85 },
-            { hue: 0.10, saturation: 0.85, dim: 0.7 },
+            { hue: 0.1, saturation: 0.85, dim: 0.7 },
         ],
         intervalMs: 1500,
     },
     rainbow: {
         // ~12 second full cycle
         frames: [
-            { hue: 0.00, saturation: 1 }, { hue: 0.08, saturation: 1 },
-            { hue: 0.17, saturation: 1 }, { hue: 0.33, saturation: 1 },
-            { hue: 0.50, saturation: 1 }, { hue: 0.67, saturation: 1 },
-            { hue: 0.83, saturation: 1 }, { hue: 0.92, saturation: 1 },
+            { hue: 0.0, saturation: 1 },
+            { hue: 0.08, saturation: 1 },
+            { hue: 0.17, saturation: 1 },
+            { hue: 0.33, saturation: 1 },
+            { hue: 0.5, saturation: 1 },
+            { hue: 0.67, saturation: 1 },
+            { hue: 0.83, saturation: 1 },
+            { hue: 0.92, saturation: 1 },
         ],
         intervalMs: 1500,
     },
     cyber: {
         frames: [
-            { hue: 0.50, saturation: 1 }, { hue: 0.83, saturation: 1 },
-            { hue: 0.92, saturation: 1 }, { hue: 0.75, saturation: 1 },
+            { hue: 0.5, saturation: 1 },
+            { hue: 0.83, saturation: 1 },
+            { hue: 0.92, saturation: 1 },
+            { hue: 0.75, saturation: 1 },
         ],
         intervalMs: 2000,
     },
     fireworks: {
         frames: [
-            { hue: 0.00, saturation: 1, dim: 1 }, { hue: 0.15, saturation: 1, dim: 1 },
-            { hue: 0.55, saturation: 1, dim: 1 }, { hue: 0.80, saturation: 1, dim: 1 },
-            { hue: 0.35, saturation: 1, dim: 1 }, { hue: 0.95, saturation: 1, dim: 1 },
+            { hue: 0.0, saturation: 1, dim: 1 },
+            { hue: 0.15, saturation: 1, dim: 1 },
+            { hue: 0.55, saturation: 1, dim: 1 },
+            { hue: 0.8, saturation: 1, dim: 1 },
+            { hue: 0.35, saturation: 1, dim: 1 },
+            { hue: 0.95, saturation: 1, dim: 1 },
         ],
         intervalMs: 1200,
     },
     volcanic: {
         frames: [
-            { hue: 0.00, saturation: 1 }, { hue: 0.05, saturation: 1 },
-            { hue: 0.10, saturation: 1 }, { hue: 0.03, saturation: 1 },
+            { hue: 0.0, saturation: 1 },
+            { hue: 0.05, saturation: 1 },
+            { hue: 0.1, saturation: 1 },
+            { hue: 0.03, saturation: 1 },
         ],
         intervalMs: 2500,
     },
     aurora: {
         frames: [
-            { hue: 0.33, saturation: 0.8 }, { hue: 0.45, saturation: 0.8 },
-            { hue: 0.55, saturation: 0.8 }, { hue: 0.70, saturation: 0.7 },
+            { hue: 0.33, saturation: 0.8 },
+            { hue: 0.45, saturation: 0.8 },
+            { hue: 0.55, saturation: 0.8 },
+            { hue: 0.7, saturation: 0.7 },
         ],
         intervalMs: 3000,
     },
     happy_holidays: {
-        frames: [{ hue: 0.00, saturation: 1 }, { hue: 0.33, saturation: 1 }],
+        frames: [
+            { hue: 0.0, saturation: 1 },
+            { hue: 0.33, saturation: 1 },
+        ],
         intervalMs: 2500,
     },
     red_white_blue: {
         frames: [
-            { hue: 0.00, saturation: 1 },
-            { hue: 0.00, saturation: 0 },
+            { hue: 0.0, saturation: 1 },
+            { hue: 0.0, saturation: 0 },
             { hue: 0.67, saturation: 1 },
         ],
         intervalMs: 2500,
     },
     vegas: {
         frames: [
-            { hue: 0.00, saturation: 1 }, { hue: 0.17, saturation: 1 },
-            { hue: 0.33, saturation: 1 }, { hue: 0.50, saturation: 1 },
-            { hue: 0.67, saturation: 1 }, { hue: 0.83, saturation: 1 },
+            { hue: 0.0, saturation: 1 },
+            { hue: 0.17, saturation: 1 },
+            { hue: 0.33, saturation: 1 },
+            { hue: 0.5, saturation: 1 },
+            { hue: 0.67, saturation: 1 },
+            { hue: 0.83, saturation: 1 },
         ],
         intervalMs: 800,
     },
     party_time: {
         frames: [
-            { hue: 0.10, saturation: 1 }, { hue: 0.30, saturation: 1 },
-            { hue: 0.55, saturation: 1 }, { hue: 0.80, saturation: 1 },
+            { hue: 0.1, saturation: 1 },
+            { hue: 0.3, saturation: 1 },
+            { hue: 0.55, saturation: 1 },
+            { hue: 0.8, saturation: 1 },
         ],
         intervalMs: 700,
     },
@@ -149,7 +170,9 @@ class BulbDevice extends homey_1.default.Device {
             await this.setAvailable();
             // Fire a status query so the UI reflects the bulb's current state
             // rather than Homey defaults (all sliders at zero / white).
-            client.queryAllDevices(this.asCyncDevice()).catch((err) => this.error('initial state query failed:', err));
+            client
+                .queryAllDevices(this.asCyncDevice())
+                .catch((err) => this.error('initial state query failed:', err));
         }
         catch (err) {
             this.error('Cync client unavailable at onInit:', err);

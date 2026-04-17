@@ -12,14 +12,16 @@
     "fmt": "oxfmt --write .",
     "fmt:check": "oxfmt --check ."
   },
+  "dependencies": {
+    "axios": "^1.15.0"
+  },
   "devDependencies": {
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.6",
     "@types/node": "^18.19.0",
     "@typescript/native-preview": "latest",
+    "homey": "^4.2.0",
     "oxfmt": "^0.44.0",
-    "oxlint": "^1.59.0"
-  },
-  "dependencies": {
-    "axios": "^1.15.0"
+    "oxlint": "^1.59.0",
+    "oxlint-tsgolint": "^0.21.1"
   }
 }

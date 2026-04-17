@@ -16,7 +16,8 @@
       "Bash(bunx --bun homey app validate)",
       "WebFetch(domain:apps.developer.homey.app)",
       "WebFetch(domain:apps-sdk-v3.developer.homey.app)",
-      "WebFetch(domain:community.homey.app)"
+      "WebFetch(domain:community.homey.app)",
+      "Bash(bun add *)"
     ]
   }
 }

@@ -88,7 +88,11 @@ export class CyncClient extends EventEmitter {
   }
 
   async submitOtp(code: string): Promise<void> {
-    this.tokens = await this.auth.submitOtp(this.credentials.email, this.credentials.password, code);
+    this.tokens = await this.auth.submitOtp(
+      this.credentials.email,
+      this.credentials.password,
+      code,
+    );
     this.onTokensUpdated?.(this.tokens);
   }
 
@@ -132,24 +136,24 @@ export class CyncClient extends EventEmitter {
         index: s.index,
         name: s.name,
         colors: s.colors ?? [],
-        speed: Array.isArray(s.speed) ? s.speed[0] ?? 50 : 50,
-        brightness: Array.isArray(s.brightness) ? s.brightness[0] ?? 100 : 100,
+        speed: Array.isArray(s.speed) ? (s.speed[0] ?? 50) : 50,
+        brightness: Array.isArray(s.brightness) ? (s.brightness[0] ?? 100) : 100,
       }));
       this.logger.log(`home ${home.id}: ${homeShows.length} custom light shows`);
       const meshBulbs = (property.bulbsArray ?? []).filter((b) => 'switchID' in b);
       for (const mesh of meshBulbs) {
         const match = subscribe.find((s) => s.id === mesh.switchID);
         if (!match) continue;
-        const rawDeviceId = Number(mesh.deviceID ?? 0);
+        const rawDeviceId = mesh.deviceID ?? 0;
         const meshId = home.id > 0 ? rawDeviceId % home.id : rawDeviceId;
         bulbs.push({
           deviceId: match.id,
           homeHubId: match.id,
           meshId,
           name: mesh.displayName || match.name || `Cync ${match.id}`,
-          supportsRgb: Boolean(mesh.supports_rgb ?? true),
-          supportsColorTemp: Boolean(mesh.supports_cct ?? true),
-          supportsDim: Boolean(mesh.supports_brightness ?? true),
+          supportsRgb: mesh.supports_rgb ?? true,
+          supportsColorTemp: mesh.supports_cct ?? true,
+          supportsDim: mesh.supports_brightness ?? true,
           customShows: homeShows,
         });
       }
@@ -298,7 +302,7 @@ export class CyncClient extends EventEmitter {
   }
 
   private dispatchFrame(messageType: number, _isResponse: boolean, payload: Buffer): void {
-    switch (messageType) {
+    switch (messageType as MessageType) {
       case MessageType.LOGIN:
         this.loginAck = true;
         this.startPing();

@@ -80,25 +80,22 @@ export default class BulbDriver extends Homey.Driver {
     });
 
     // Register login handler BEFORE any other handlers
-    session.setHandler(
-      'login',
-      async (data: unknown): Promise<boolean> => {
-        console.log('=== LOGIN HANDLER FIRED ===', JSON.stringify(data));
-        try {
-          const creds = data as { username: string; password: string };
-          const result = await app.setCredentials(creds.username, creds.password);
-          console.log('=== LOGIN RESULT ===', JSON.stringify(result));
-          if (result.needsOtp) {
-            return true;
-          }
-          await session.showView('list_devices');
+    session.setHandler('login', async (data: unknown): Promise<boolean> => {
+      console.log('=== LOGIN HANDLER FIRED ===', JSON.stringify(data));
+      try {
+        const creds = data as { username: string; password: string };
+        const result = await app.setCredentials(creds.username, creds.password);
+        console.log('=== LOGIN RESULT ===', JSON.stringify(result));
+        if (result.needsOtp) {
           return true;
-        } catch (err) {
-          console.log('=== LOGIN ERROR ===', String(err));
-          throw this.friendlyError(err);
         }
-      },
-    );
+        await session.showView('list_devices');
+        return true;
+      } catch (err) {
+        console.log('=== LOGIN ERROR ===', String(err));
+        throw this.friendlyError(err);
+      }
+    });
 
     session.setHandler('otp', async (code: unknown): Promise<boolean> => {
       console.log('=== OTP HANDLER FIRED ===', code);

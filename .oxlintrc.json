@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["unicorn", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "no-console": "off",
+    "no-unused-vars": "warn",
+    "no-await-in-loop": "off",
+    "typescript/no-floating-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-misused-spread": "warn",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/no-base-to-string": "off"
+  },
+  "settings": {},
+  "env": {
+    "builtin": true
+  },
+  "globals": {},
+  "ignorePatterns": ["*.js", "node_modules", ".homeybuild", ".references", "settings"]
+}

@@ -36,10 +36,7 @@ export default class CyncApp extends Homey.App {
    * caller must follow with submitOtp(); we keep creds in memory in the
    * meantime so the OTP step can complete the login.
    */
-  async setCredentials(
-    email: string,
-    password: string,
-  ): Promise<{ needsOtp: boolean }> {
+  async setCredentials(email: string, password: string): Promise<{ needsOtp: boolean }> {
     this.log(`Cync: setting credentials for ${email}`);
     if (this.client) {
       this.client.disconnect();
@@ -81,8 +78,7 @@ export default class CyncApp extends Homey.App {
 
   hasCredentials(): boolean {
     return Boolean(
-      this.homey.settings.get(SETTINGS_KEY_EMAIL) &&
-        this.homey.settings.get(SETTINGS_KEY_PASSWORD),
+      this.homey.settings.get(SETTINGS_KEY_EMAIL) && this.homey.settings.get(SETTINGS_KEY_PASSWORD),
     );
   }
 
