@@ -5,28 +5,112 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const homey_1 = __importDefault(require("homey"));
 const effects_1 = require("../../lib/cync/effects");
+const EFFECT_ANIMATIONS = {
+    candle: {
+        frames: [
+            { hue: 0.08, saturation: 0.85, dim: 0.75 },
+            { hue: 0.09, saturation: 0.9, dim: 0.95 },
+            { hue: 0.07, saturation: 0.8, dim: 0.85 },
+            { hue: 0.10, saturation: 0.85, dim: 0.7 },
+        ],
+        intervalMs: 1500,
+    },
+    rainbow: {
+        // ~12 second full cycle
+        frames: [
+            { hue: 0.00, saturation: 1 }, { hue: 0.08, saturation: 1 },
+            { hue: 0.17, saturation: 1 }, { hue: 0.33, saturation: 1 },
+            { hue: 0.50, saturation: 1 }, { hue: 0.67, saturation: 1 },
+            { hue: 0.83, saturation: 1 }, { hue: 0.92, saturation: 1 },
+        ],
+        intervalMs: 1500,
+    },
+    cyber: {
+        frames: [
+            { hue: 0.50, saturation: 1 }, { hue: 0.83, saturation: 1 },
+            { hue: 0.92, saturation: 1 }, { hue: 0.75, saturation: 1 },
+        ],
+        intervalMs: 2000,
+    },
+    fireworks: {
+        frames: [
+            { hue: 0.00, saturation: 1, dim: 1 }, { hue: 0.15, saturation: 1, dim: 1 },
+            { hue: 0.55, saturation: 1, dim: 1 }, { hue: 0.80, saturation: 1, dim: 1 },
+            { hue: 0.35, saturation: 1, dim: 1 }, { hue: 0.95, saturation: 1, dim: 1 },
+        ],
+        intervalMs: 1200,
+    },
+    volcanic: {
+        frames: [
+            { hue: 0.00, saturation: 1 }, { hue: 0.05, saturation: 1 },
+            { hue: 0.10, saturation: 1 }, { hue: 0.03, saturation: 1 },
+        ],
+        intervalMs: 2500,
+    },
+    aurora: {
+        frames: [
+            { hue: 0.33, saturation: 0.8 }, { hue: 0.45, saturation: 0.8 },
+            { hue: 0.55, saturation: 0.8 }, { hue: 0.70, saturation: 0.7 },
+        ],
+        intervalMs: 3000,
+    },
+    happy_holidays: {
+        frames: [{ hue: 0.00, saturation: 1 }, { hue: 0.33, saturation: 1 }],
+        intervalMs: 2500,
+    },
+    red_white_blue: {
+        frames: [
+            { hue: 0.00, saturation: 1 },
+            { hue: 0.00, saturation: 0 },
+            { hue: 0.67, saturation: 1 },
+        ],
+        intervalMs: 2500,
+    },
+    vegas: {
+        frames: [
+            { hue: 0.00, saturation: 1 }, { hue: 0.17, saturation: 1 },
+            { hue: 0.33, saturation: 1 }, { hue: 0.50, saturation: 1 },
+            { hue: 0.67, saturation: 1 }, { hue: 0.83, saturation: 1 },
+        ],
+        intervalMs: 800,
+    },
+    party_time: {
+        frames: [
+            { hue: 0.10, saturation: 1 }, { hue: 0.30, saturation: 1 },
+            { hue: 0.55, saturation: 1 }, { hue: 0.80, saturation: 1 },
+        ],
+        intervalMs: 700,
+    },
+};
 class BulbDevice extends homey_1.default.Device {
     constructor() {
         super(...arguments);
         this.lastHue = 0;
         this.lastSaturation = 0;
+        this.effectTimer = null;
+        this.effectFrameIndex = 0;
     }
     async onInit() {
         const data = this.getData();
         this.log(`BulbDevice init deviceId=${data.deviceId}`);
         this.registerCapabilityListener('onoff', async (value) => {
+            this.stopEffectAnimation();
             await this.client().setPower(this.asCyncDevice(), value);
         });
         this.registerCapabilityListener('dim', async (value) => {
+            this.stopEffectAnimation();
             await this.client().setBrightness(this.asCyncDevice(), Math.round(value * 100));
         });
         this.registerCapabilityListener('light_temperature', async (value) => {
+            this.stopEffectAnimation();
             // Homey provides 0..1 where 0=coolest, 1=warmest; Cync protocol uses 0=warm, 100=cool.
             const pct = Math.round((1 - value) * 100);
             await this.client().setColorTemp(this.asCyncDevice(), pct);
             await this.setCapabilityValue('light_mode', 'temperature').catch(() => undefined);
+            await this.setCapabilityValue('cync_effect', 'none').catch(() => undefined);
         });
         this.registerMultipleCapabilityListener(['light_hue', 'light_saturation'], async (values) => {
+            this.stopEffectAnimation();
             if (typeof values.light_hue === 'number')
                 this.lastHue = values.light_hue;
             if (typeof values.light_saturation === 'number')
@@ -35,16 +119,19 @@ class BulbDevice extends homey_1.default.Device {
             const [r, g, b] = hsvToRgb(this.lastHue, this.lastSaturation, dim);
             await this.client().setColorRgb(this.asCyncDevice(), r, g, b);
             await this.setCapabilityValue('light_mode', 'color').catch(() => undefined);
+            await this.setCapabilityValue('cync_effect', 'none').catch(() => undefined);
         }, 500);
         this.registerCapabilityListener('cync_effect', async (value) => {
             const device = this.asCyncDevice();
             if (value === 'none') {
                 await this.client().stopEffect(device);
+                this.stopEffectAnimation();
                 return;
             }
             if (!(0, effects_1.isEffectName)(value))
                 throw new Error(`Unknown effect: ${value}`);
             await this.client().setEffect(device, value);
+            this.startEffectAnimation(value);
         });
         const app = this.homey.app;
         if (!app.hasCredentials()) {
@@ -69,7 +156,66 @@ class BulbDevice extends homey_1.default.Device {
             await this.setUnavailable('Cync service is reconnecting…');
         }
     }
+    startEffectAnimation(effect) {
+        this.stopEffectAnimation();
+        const anim = EFFECT_ANIMATIONS[effect];
+        this.effectFrameIndex = 0;
+        this.setCapabilityValue('light_mode', 'color').catch(() => undefined);
+        const tick = () => {
+            const frame = anim.frames[this.effectFrameIndex % anim.frames.length];
+            this.effectFrameIndex++;
+            this.setCapabilityValue('light_hue', frame.hue).catch(() => undefined);
+            this.setCapabilityValue('light_saturation', frame.saturation).catch(() => undefined);
+            if (frame.dim !== undefined) {
+                this.setCapabilityValue('dim', frame.dim).catch(() => undefined);
+            }
+        };
+        tick();
+        this.effectTimer = setInterval(tick, anim.intervalMs);
+    }
+    /** Drive a user-defined light show locally by cycling RGB commands. */
+    async startCustomShow(show) {
+        this.log(`startCustomShow: ${show.name} (${show.colors.length} colors, speed=${show.speed}ms)`);
+        this.stopEffectAnimation();
+        if (show.colors.length === 0)
+            throw new Error(`Custom effect "${show.name}" has no colors.`);
+        const rgbFrames = show.colors.map(hexToRgb);
+        // speed is a dwell time in milliseconds per color from the Cync REST API.
+        const intervalMs = Math.max(300, Math.min(show.speed, 10000));
+        const dim = Math.max(0.05, Math.min(1, show.brightness / 100));
+        await this.setCapabilityValue('cync_effect', 'none').catch(() => undefined);
+        await this.setCapabilityValue('dim', dim).catch(() => undefined);
+        await this.setCapabilityValue('light_mode', 'color').catch(() => undefined);
+        this.effectFrameIndex = 0;
+        const device = this.asCyncDevice();
+        const tick = async () => {
+            const [r, g, b] = rgbFrames[this.effectFrameIndex % rgbFrames.length];
+            this.effectFrameIndex++;
+            try {
+                await this.client().setColorRgb(device, r, g, b);
+            }
+            catch (err) {
+                this.error('custom effect RGB send failed:', err);
+            }
+            const [h, s] = rgbToHsv(r, g, b);
+            this.lastHue = h;
+            this.lastSaturation = s;
+            this.setCapabilityValue('light_hue', h).catch(() => undefined);
+            this.setCapabilityValue('light_saturation', s).catch(() => undefined);
+        };
+        await tick();
+        this.effectTimer = setInterval(() => {
+            tick().catch((err) => this.error('custom effect tick failed:', err));
+        }, intervalMs);
+    }
+    stopEffectAnimation() {
+        if (this.effectTimer) {
+            clearInterval(this.effectTimer);
+            this.effectTimer = null;
+        }
+    }
     async onDeleted() {
+        this.stopEffectAnimation();
         if (this.stateListener) {
             try {
                 const app = this.homey.app;
@@ -92,6 +238,7 @@ class BulbDevice extends homey_1.default.Device {
             name: this.getName(),
             supportsRgb: Boolean(this.getStoreValue('supportsRgb') ?? true),
             supportsColorTemp: Boolean(this.getStoreValue('supportsColorTemp') ?? true),
+            customShows: this.getStoreValue('customShows') ?? [],
             supportsDim: true,
         };
     }
@@ -128,6 +275,13 @@ class BulbDevice extends homey_1.default.Device {
 }
 exports.default = BulbDevice;
 module.exports = BulbDevice;
+function hexToRgb(hex) {
+    const clean = hex.replace(/^#/, '').trim();
+    const v = parseInt(clean, 16);
+    if (clean.length === 6)
+        return [(v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
+    return [0, 0, 0];
+}
 function rgbToHsv(r, g, b) {
     const rn = r / 255;
     const gn = g / 255;

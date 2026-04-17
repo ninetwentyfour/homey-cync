@@ -1,0 +1,9 @@
+{
+  "_comment": "DISABLED. Rename back to run_custom_effect.json (drop the .disabled suffix) and uncomment the handler block in drivers/bulb/driver.ts to re-enable.",
+  "title": { "en": "Run custom effect" },
+  "titleFormatted": { "en": "Run custom effect [[effect]]" },
+  "args": [
+    { "type": "device", "name": "device", "filter": "driver_id=bulb" },
+    { "type": "autocomplete", "name": "effect", "title": { "en": "Effect" } }
+  ]
+}

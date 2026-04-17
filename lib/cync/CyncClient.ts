@@ -24,6 +24,7 @@ import {
   tryParseOuterFrame,
 } from './frames';
 import type {
+  CustomLightShow,
   CyncDevice,
   DeviceState,
   EffectName,
@@ -124,26 +125,32 @@ export class CyncClient extends EventEmitter {
         `/v2/product/${home.product_id}/device/${home.id}/property`,
         tokens.accessToken,
       )) as HomeProperty;
+      this.logger.log(
+        `home ${home.id}: keys=${Object.keys(property).join(',')} lightShows=${JSON.stringify(property.lightShows ?? null)}`,
+      );
+      const homeShows: CustomLightShow[] = (property.lightShows ?? []).map((s) => ({
+        index: s.index,
+        name: s.name,
+        colors: s.colors ?? [],
+        speed: Array.isArray(s.speed) ? s.speed[0] ?? 50 : 50,
+        brightness: Array.isArray(s.brightness) ? s.brightness[0] ?? 100 : 100,
+      }));
+      this.logger.log(`home ${home.id}: ${homeShows.length} custom light shows`);
       const meshBulbs = (property.bulbsArray ?? []).filter((b) => 'switchID' in b);
       for (const mesh of meshBulbs) {
         const match = subscribe.find((s) => s.id === mesh.switchID);
         if (!match) continue;
-        // Per pycync: isolated_mesh_id = deviceID % home_id. The raw deviceID
-        // is a 64-bit globally-unique value; the 2-byte mesh ID the bulbs use
-        // locally is derived by modulo with the home id.
         const rawDeviceId = Number(mesh.deviceID ?? 0);
         const meshId = home.id > 0 ? rawDeviceId % home.id : rawDeviceId;
         bulbs.push({
           deviceId: match.id,
-          // Route commands through the bulb's own switchID — for Wi-Fi bulbs
-          // this is the same as deviceId, and for BLE-only bulbs pycync uses
-          // the same value (the mesh-gateway logic is server-side).
           homeHubId: match.id,
           meshId,
           name: mesh.displayName || match.name || `Cync ${match.id}`,
           supportsRgb: Boolean(mesh.supports_rgb ?? true),
           supportsColorTemp: Boolean(mesh.supports_cct ?? true),
           supportsDim: Boolean(mesh.supports_brightness ?? true),
+          customShows: homeShows,
         });
       }
     }
@@ -355,6 +362,13 @@ interface SubscribeEntry {
 
 interface HomeProperty {
   bulbsArray?: MeshDevice[];
+  lightShows?: Array<{
+    index: number;
+    name: string;
+    colors?: string[];
+    speed?: number[];
+    brightness?: number[];
+  }>;
 }
 
 interface MeshDevice {

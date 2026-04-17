@@ -22,6 +22,34 @@ class BulbDriver extends homey_1.default.Driver {
             .registerRunListener(async (args) => {
             await args.device.triggerCapabilityListener('cync_effect', 'none');
         });
+        // --- HIDDEN: run_custom_effect ---
+        // Disabled until we solve the "custom-effect won't stop" spam.
+        // To re-enable, restore .homeycompose/flow/actions/run_custom_effect.json
+        // (title: Run custom effect, args: device + autocomplete effect) and
+        // uncomment the block below.
+        //
+        // const customEffect = this.homey.flow.getActionCard('run_custom_effect');
+        // customEffect.registerArgumentAutocompleteListener(
+        //   'effect',
+        //   async (query: string, args: { device: BulbDevice }) => {
+        //     const shows = (args.device.getStoreValue('customShows') as CustomLightShow[]) ?? [];
+        //     const q = query.trim().toLowerCase();
+        //     const filtered = q ? shows.filter((s) => s.name.toLowerCase().includes(q)) : shows;
+        //     return filtered.map((s) => ({
+        //       name: s.name,
+        //       description: `${s.colors.length} color${s.colors.length === 1 ? '' : 's'}`,
+        //       index: s.index,
+        //     }));
+        //   },
+        // );
+        // customEffect.registerRunListener(
+        //   async (args: { device: BulbDevice; effect: { index: number; name: string } }) => {
+        //     const shows = (args.device.getStoreValue('customShows') as CustomLightShow[]) ?? [];
+        //     const show = shows.find((s) => s.index === args.effect.index);
+        //     if (!show) throw new Error(`Custom effect "${args.effect.name}" not found — re-pair this bulb to refresh.`);
+        //     await args.device.startCustomShow(show);
+        //   },
+        // );
     }
     async onPair(session) {
         this.log('onPair: session started');
@@ -80,6 +108,7 @@ class BulbDriver extends homey_1.default.Driver {
                 meshId: bulb.meshId,
                 supportsRgb: bulb.supportsRgb,
                 supportsColorTemp: bulb.supportsColorTemp,
+                customShows: bulb.customShows,
             },
         };
     }

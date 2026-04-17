@@ -22,6 +22,20 @@ export interface CyncDevice {
   supportsRgb: boolean;
   supportsColorTemp: boolean;
   supportsDim: boolean;
+  /** User-created light shows from the Cync app; shared across the home. */
+  customShows: CustomLightShow[];
+}
+
+export interface CustomLightShow {
+  /** Show index (1-byte) — how Cync identifies it internally. */
+  index: number;
+  name: string;
+  /** Hex color strings e.g. "FF2C2F". */
+  colors: string[];
+  /** Raw speed value from Cync (0..100-ish); larger = faster. */
+  speed: number;
+  /** 0..100 brightness. */
+  brightness: number;
 }
 
 export interface DeviceState {
