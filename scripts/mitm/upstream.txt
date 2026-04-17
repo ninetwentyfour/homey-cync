@@ -1,0 +1,5 @@
+# Real Cync cloud server IPs (resolved via 1.1.1.1 before DNS hijack).
+# Used by socat as upstream. Refresh with dig if these stop working.
+cm.gelighting.com      35.196.85.236   # cm-iot-ge.xlink.cloud
+cm-sec.gelighting.com  34.8.54.17      # cm-sec-iot-ge.xlink.cloud
+cm-ge.xlink.cn         34.73.130.191

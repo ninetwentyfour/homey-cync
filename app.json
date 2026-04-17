@@ -1,0 +1,275 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.tberry.cync",
+  "version": "0.1.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "GE Cync"
+  },
+  "description": {
+    "en": "Control GE Cync bulbs including color, color temperature, and dynamic effects."
+  },
+  "category": [
+    "lights"
+  ],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Travis Berry"
+  },
+  "brandColor": "#F2A61D",
+  "api": {
+    "signOut": {
+      "method": "POST",
+      "path": "/signout"
+    }
+  },
+  "flow": {
+    "actions": [
+      {
+        "title": {
+          "en": "Set effect"
+        },
+        "titleFormatted": {
+          "en": "Set effect to [[effect]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=bulb"
+          },
+          {
+            "type": "dropdown",
+            "name": "effect",
+            "title": {
+              "en": "Effect"
+            },
+            "values": [
+              {
+                "id": "candle",
+                "label": {
+                  "en": "Candlelight"
+                }
+              },
+              {
+                "id": "rainbow",
+                "label": {
+                  "en": "Rainbow"
+                }
+              },
+              {
+                "id": "cyber",
+                "label": {
+                  "en": "Cyber"
+                }
+              },
+              {
+                "id": "fireworks",
+                "label": {
+                  "en": "Fireworks"
+                }
+              },
+              {
+                "id": "volcanic",
+                "label": {
+                  "en": "Volcanic"
+                }
+              },
+              {
+                "id": "aurora",
+                "label": {
+                  "en": "Aurora"
+                }
+              },
+              {
+                "id": "happy_holidays",
+                "label": {
+                  "en": "Happy Holidays"
+                }
+              },
+              {
+                "id": "red_white_blue",
+                "label": {
+                  "en": "Red White Blue"
+                }
+              },
+              {
+                "id": "vegas",
+                "label": {
+                  "en": "Vegas"
+                }
+              },
+              {
+                "id": "party_time",
+                "label": {
+                  "en": "Party Time"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "set_effect"
+      },
+      {
+        "title": {
+          "en": "Stop effect"
+        },
+        "titleFormatted": {
+          "en": "Stop effect"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=bulb"
+          }
+        ],
+        "id": "stop_effect"
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Cync Bulb"
+      },
+      "class": "light",
+      "capabilities": [
+        "onoff",
+        "dim",
+        "light_hue",
+        "light_saturation",
+        "light_temperature",
+        "light_mode",
+        "cync_effect"
+      ],
+      "capabilitiesOptions": {
+        "cync_effect": {
+          "title": {
+            "en": "Effect"
+          }
+        }
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "images": {
+        "small": "/drivers/bulb/assets/images/small.png",
+        "large": "/drivers/bulb/assets/images/large.png",
+        "xlarge": "/drivers/bulb/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "login"
+        },
+        {
+          "id": "otp"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "id": "bulb"
+    }
+  ],
+  "capabilities": {
+    "cync_effect": {
+      "type": "enum",
+      "title": {
+        "en": "Effect"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "insights": false,
+      "values": [
+        {
+          "id": "none",
+          "title": {
+            "en": "None"
+          }
+        },
+        {
+          "id": "candle",
+          "title": {
+            "en": "Candlelight"
+          }
+        },
+        {
+          "id": "rainbow",
+          "title": {
+            "en": "Rainbow"
+          }
+        },
+        {
+          "id": "cyber",
+          "title": {
+            "en": "Cyber"
+          }
+        },
+        {
+          "id": "fireworks",
+          "title": {
+            "en": "Fireworks"
+          }
+        },
+        {
+          "id": "volcanic",
+          "title": {
+            "en": "Volcanic"
+          }
+        },
+        {
+          "id": "aurora",
+          "title": {
+            "en": "Aurora"
+          }
+        },
+        {
+          "id": "happy_holidays",
+          "title": {
+            "en": "Happy Holidays"
+          }
+        },
+        {
+          "id": "red_white_blue",
+          "title": {
+            "en": "Red White Blue"
+          }
+        },
+        {
+          "id": "vegas",
+          "title": {
+            "en": "Vegas"
+          }
+        },
+        {
+          "id": "party_time",
+          "title": {
+            "en": "Party Time"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "com.tberry.cync",
+  "version": "0.1.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": ["local"],
+  "name": {
+    "en": "GE Cync"
+  },
+  "description": {
+    "en": "Control GE Cync bulbs including color, color temperature, and dynamic effects."
+  },
+  "category": ["lights"],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Travis Berry"
+  },
+  "brandColor": "#F2A61D",
+  "api": {
+    "signOut": {
+      "method": "POST",
+      "path": "/signout"
+    }
+  }
+}

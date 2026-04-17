@@ -1,0 +1,10 @@
+.references/
+captures/
+scripts/mitm/key.pem
+scripts/mitm/cert.pem
+scripts/mitm/server.pem
+scripts/mitm/cync-mitm.crt
+node_modules/
+.homeybuild/
+*.log
+.DS_Store

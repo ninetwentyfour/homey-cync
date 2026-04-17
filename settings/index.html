@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>GE Cync</title>
+    <style>
+      body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 24px; background: #f6f7f8; color: #1a1a1a; }
+      .card { background: #fff; border-radius: 12px; padding: 24px; max-width: 480px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+      h1 { font-size: 20px; margin: 0 0 12px; }
+      .row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+      .label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+      .value { font-size: 16px; font-weight: 500; }
+      button { background: #c0392b; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+      button:hover { background: #a93226; }
+      button:disabled { background: #ccc; cursor: not-allowed; }
+      .status { font-size: 13px; color: #2e7d32; margin-top: 12px; min-height: 18px; }
+      .status.error { color: #c0392b; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1 data-i18n="settings.title">GE Cync</h1>
+      <div class="row">
+        <div>
+          <div class="label" data-i18n="settings.loggedInAs">Signed in as</div>
+          <div class="value" id="account">—</div>
+        </div>
+      </div>
+      <button id="signout" data-i18n="settings.signOut">Sign out</button>
+      <div class="status" id="status"></div>
+    </div>
+    <script>
+      function onHomeyReady(Homey) {
+        const accountEl = document.getElementById('account');
+        const statusEl = document.getElementById('status');
+        const signOutBtn = document.getElementById('signout');
+
+        function refresh() {
+          Homey.get('cync.email', (err, value) => {
+            if (err || !value) {
+              accountEl.textContent = Homey.__('settings.notLoggedIn') || 'Not signed in';
+              signOutBtn.disabled = true;
+              return;
+            }
+            accountEl.textContent = value;
+            signOutBtn.disabled = false;
+          });
+        }
+
+        signOutBtn.addEventListener('click', () => {
+          statusEl.classList.remove('error');
+          statusEl.textContent = '';
+          signOutBtn.disabled = true;
+          Homey.api('POST', '/signout', {}, (err) => {
+            if (err) {
+              statusEl.classList.add('error');
+              statusEl.textContent = err.message || String(err);
+              signOutBtn.disabled = false;
+              return;
+            }
+            statusEl.textContent = Homey.__('settings.signedOut') || 'Signed out.';
+            refresh();
+          });
+        });
+
+        refresh();
+        Homey.ready();
+      }
+    </script>
+  </body>
+</html>

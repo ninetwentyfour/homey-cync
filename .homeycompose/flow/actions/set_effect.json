@@ -1,0 +1,28 @@
+{
+  "title": { "en": "Set effect" },
+  "titleFormatted": { "en": "Set effect to [[effect]]" },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=bulb"
+    },
+    {
+      "type": "dropdown",
+      "name": "effect",
+      "title": { "en": "Effect" },
+      "values": [
+        { "id": "candle", "label": { "en": "Candlelight" } },
+        { "id": "rainbow", "label": { "en": "Rainbow" } },
+        { "id": "cyber", "label": { "en": "Cyber" } },
+        { "id": "fireworks", "label": { "en": "Fireworks" } },
+        { "id": "volcanic", "label": { "en": "Volcanic" } },
+        { "id": "aurora", "label": { "en": "Aurora" } },
+        { "id": "happy_holidays", "label": { "en": "Happy Holidays" } },
+        { "id": "red_white_blue", "label": { "en": "Red White Blue" } },
+        { "id": "vegas", "label": { "en": "Vegas" } },
+        { "id": "party_time", "label": { "en": "Party Time" } }
+      ]
+    }
+  ]
+}

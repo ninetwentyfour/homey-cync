@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Bulb glass -->
+  <path d="M128 52
+           C 88 52, 56 84, 56 124
+           C 56 154, 74 174, 94 192
+           L 94 208
+           L 162 208
+           L 162 192
+           C 182 174, 200 154, 200 124
+           C 200 84, 168 52, 128 52 Z"
+        fill="#FFF7D9" stroke="#F2A61D" stroke-width="8" stroke-linejoin="round"/>
+  <!-- Filament -->
+  <path d="M104 110 Q 128 156, 152 110 M 128 156 L 128 186"
+        fill="none" stroke="#F2A61D" stroke-width="5" stroke-linecap="round"/>
+  <!-- Base threads -->
+  <rect x="102" y="212" width="52" height="9" rx="1" fill="#F2A61D"/>
+  <rect x="106" y="224" width="44" height="8" rx="1" fill="#B87A10"/>
+  <rect x="110" y="235" width="36" height="4" rx="1" fill="#B87A10"/>
+  <!-- Rainbow effect arc above bulb -->
+  <circle cx="36" cy="110" r="9" fill="#E74C3C"/>
+  <circle cx="48" cy="66" r="9" fill="#F39C12"/>
+  <circle cx="84" cy="32" r="9" fill="#F1C40F"/>
+  <circle cx="128" cy="22" r="10" fill="#27AE60"/>
+  <circle cx="172" cy="32" r="9" fill="#3498DB"/>
+  <circle cx="208" cy="66" r="9" fill="#9B59B6"/>
+  <circle cx="220" cy="110" r="9" fill="#E74C3C"/>
+</svg>

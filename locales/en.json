@@ -1,0 +1,20 @@
+{
+  "settings": {
+    "title": "GE Cync",
+    "loggedInAs": "Signed in as",
+    "notLoggedIn": "Not signed in",
+    "signOut": "Sign out",
+    "signedOut": "Signed out."
+  },
+  "pair": {
+    "otpTitle": "Two-factor code",
+    "otpPrompt": "Check your email — Cync just sent a 6-digit verification code. Enter it below.",
+    "otpPlaceholder": "123456",
+    "verify": "Verify"
+  },
+  "errors": {
+    "loginFailed": "Login failed. Check your Cync email and password.",
+    "invalidOtp": "The verification code is incorrect or expired.",
+    "noBulbs": "No bulbs were found on this Cync account."
+  }
+}

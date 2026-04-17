@@ -1,0 +1,21 @@
+{
+  "type": "enum",
+  "title": { "en": "Effect" },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "insights": false,
+  "values": [
+    { "id": "none", "title": { "en": "None" } },
+    { "id": "candle", "title": { "en": "Candlelight" } },
+    { "id": "rainbow", "title": { "en": "Rainbow" } },
+    { "id": "cyber", "title": { "en": "Cyber" } },
+    { "id": "fireworks", "title": { "en": "Fireworks" } },
+    { "id": "volcanic", "title": { "en": "Volcanic" } },
+    { "id": "aurora", "title": { "en": "Aurora" } },
+    { "id": "happy_holidays", "title": { "en": "Happy Holidays" } },
+    { "id": "red_white_blue", "title": { "en": "Red White Blue" } },
+    { "id": "vegas", "title": { "en": "Vegas" } },
+    { "id": "party_time", "title": { "en": "Party Time" } }
+  ]
+}

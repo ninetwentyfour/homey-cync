@@ -1,0 +1,37 @@
+{
+  "name": { "en": "Cync Bulb" },
+  "class": "light",
+  "capabilities": [
+    "onoff",
+    "dim",
+    "light_hue",
+    "light_saturation",
+    "light_temperature",
+    "light_mode",
+    "cync_effect"
+  ],
+  "capabilitiesOptions": {
+    "cync_effect": { "title": { "en": "Effect" } }
+  },
+  "platforms": ["local"],
+  "connectivity": ["cloud"],
+  "images": {
+    "small": "/drivers/bulb/assets/images/small.png",
+    "large": "/drivers/bulb/assets/images/large.png",
+    "xlarge": "/drivers/bulb/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "login"
+    },
+    {
+      "id": "otp"
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": { "next": "add_devices" }
+    },
+    { "id": "add_devices", "template": "add_devices" }
+  ]
+}

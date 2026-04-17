@@ -1,0 +1,45 @@
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; background: #f6f7f8; color: #1a1a1a; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { color: #555; margin: 0 0 16px; font-size: 14px; line-height: 1.4; }
+  input { width: 100%; padding: 14px; font-size: 24px; border: 1px solid #ccc; border-radius: 8px; text-align: center; letter-spacing: 0.3em; box-sizing: border-box; }
+  button { width: 100%; background: #F2A61D; color: #1a1a1a; border: none; padding: 16px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+  button:hover { background: #e09314; }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  .status { font-size: 13px; margin-top: 12px; min-height: 18px; color: #c0392b; }
+</style>
+
+<h1>Two-factor code</h1>
+<p>Check your email for a 6-digit verification code from Cync.</p>
+<input id="code" type="tel" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" />
+<button type="button" id="verify">Verify</button>
+<div class="status" id="status"></div>
+
+<script>
+  (function () {
+    var input = document.getElementById('code');
+    var btn = document.getElementById('verify');
+    var status = document.getElementById('status');
+
+    async function submit() {
+      var code = input.value.trim();
+      if (!code || code.length < 6) return;
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      status.textContent = '';
+      try {
+        await Homey.emit('otp', code);
+        btn.textContent = 'Success!';
+        Homey.showView('list_devices');
+      } catch (err) {
+        status.textContent = (err && err.message) || 'Verification failed.';
+        btn.disabled = false;
+        btn.textContent = 'Verify';
+      }
+    }
+
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+    input.focus();
+  })();
+</script>

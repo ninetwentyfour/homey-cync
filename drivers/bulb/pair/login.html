@@ -1,0 +1,50 @@
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; padding: 24px; background: #f6f7f8; color: #1a1a1a; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { color: #555; margin: 0 0 16px; font-size: 14px; line-height: 1.4; }
+  label { display: block; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; margin-bottom: 16px; }
+  button { width: 100%; background: #F2A61D; color: #1a1a1a; border: none; padding: 16px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  button:hover { background: #e09314; }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  .status { font-size: 13px; margin-top: 12px; min-height: 18px; color: #c0392b; }
+</style>
+
+<h1>Sign in to Cync</h1>
+<p>Enter your GE Cync account email and password.</p>
+<label for="email">Email</label>
+<input id="email" type="email" value="contact@travisberry.com" autocomplete="email" />
+<label for="password">Password</label>
+<input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+<button type="button" id="submit">Sign in</button>
+<div class="status" id="status"></div>
+
+<script>
+  (function () {
+    var emailEl = document.getElementById('email');
+    var passEl = document.getElementById('password');
+    var btn = document.getElementById('submit');
+    var status = document.getElementById('status');
+
+    async function submit() {
+      var email = emailEl.value.trim();
+      var password = passEl.value;
+      if (!email || !password) return;
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+      status.textContent = '';
+      try {
+        await Homey.emit('login', { username: email, password: password });
+        Homey.showView('otp');
+      } catch (err) {
+        status.textContent = (err && err.message) || 'Login failed.';
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+      }
+    }
+
+    btn.addEventListener('click', submit);
+    passEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+    passEl.focus();
+  })();
+</script>

@@ -1,0 +1,11 @@
+{
+  "title": { "en": "Stop effect" },
+  "titleFormatted": { "en": "Stop effect" },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=bulb"
+    }
+  ]
+}
