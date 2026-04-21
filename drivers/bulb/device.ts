@@ -2,8 +2,24 @@ import Homey from 'homey';
 
 import type CyncApp from '../../app';
 import { CyncClient } from '../../lib/cync/CyncClient';
-import { isEffectName } from '../../lib/cync/effects';
+import { EFFECT_NAMES, isEffectName } from '../../lib/cync/effects';
 import type { CustomLightShow, CyncDevice, DeviceState, EffectName } from '../../lib/cync/types';
+
+const FACTORY_EFFECT_TITLES: Record<EffectName, string> = {
+  candle: 'Candlelight',
+  rainbow: 'Rainbow',
+  cyber: 'Cyber',
+  fireworks: 'Fireworks',
+  volcanic: 'Volcanic',
+  aurora: 'Aurora',
+  happy_holidays: 'Happy Holidays',
+  red_white_blue: 'Red White Blue',
+  vegas: 'Vegas',
+  party_time: 'Party Time',
+};
+
+const CUSTOM_EFFECT_PREFIX = 'custom_';
+const customEffectId = (show: CustomLightShow): string => `${CUSTOM_EFFECT_PREFIX}${show.index}`;
 
 // Visual approximations of the on-device effects so the Homey card tint
 // animates while an effect is playing. The bulb itself runs its own
@@ -125,8 +141,22 @@ export default class BulbDevice extends Homey.Device {
     });
 
     this.registerCapabilityListener('dim', async (value: number) => {
+      const device = this.asCyncDevice();
+      const pct = Math.round(value * 100);
+      const effect = this.getCapabilityValue('cync_effect') as string | null;
+      // Custom shows are driven client-side — the next RGB tick will apply
+      // the new brightness via channel scaling; sending a brightness frame
+      // now would just flicker once.
+      if (effect && effect.startsWith(CUSTOM_EFFECT_PREFIX)) return;
+      // A brightness frame cancels any factory effect on the bulb firmware,
+      // so re-send the effect right after so it keeps playing — the firmware
+      // uses the new brightness as its base level.
+      await this.client().setBrightness(device, pct);
+      if (effect && effect !== 'none' && isEffectName(effect)) {
+        await this.client().setEffect(device, effect);
+        return;
+      }
       this.stopEffectAnimation();
-      await this.client().setBrightness(this.asCyncDevice(), Math.round(value * 100));
     });
 
     this.registerCapabilityListener('light_temperature', async (value: number) => {
@@ -161,10 +191,23 @@ export default class BulbDevice extends Homey.Device {
         this.stopEffectAnimation();
         return;
       }
-      if (!isEffectName(value)) throw new Error(`Unknown effect: ${value}`);
-      await this.client().setEffect(device, value);
-      this.startEffectAnimation(value);
+      if (isEffectName(value)) {
+        await this.client().setEffect(device, value);
+        this.startEffectAnimation(value);
+        return;
+      }
+      if (value.startsWith(CUSTOM_EFFECT_PREFIX)) {
+        const shows = (this.getStoreValue('customShows') as CustomLightShow[]) ?? [];
+        const index = Number(value.slice(CUSTOM_EFFECT_PREFIX.length));
+        const show = shows.find((s) => s.index === index);
+        if (!show) throw new Error(`Custom effect "${value}" not found — re-pair this bulb.`);
+        await this.startCustomShow(show);
+        return;
+      }
+      throw new Error(`Unknown effect: ${value}`);
     });
+
+    this.refreshEffectOptions();
 
     const app = this.homey.app as CyncApp;
     if (!app.hasCredentials()) {
@@ -219,9 +262,6 @@ export default class BulbDevice extends Homey.Device {
     const rgbFrames = show.colors.map(hexToRgb);
     // speed is a dwell time in milliseconds per color from the Cync REST API.
     const intervalMs = Math.max(300, Math.min(show.speed, 10_000));
-    const dim = Math.max(0.05, Math.min(1, show.brightness / 100));
-    await this.setCapabilityValue('cync_effect', 'none').catch(() => undefined);
-    await this.setCapabilityValue('dim', dim).catch(() => undefined);
     await this.setCapabilityValue('light_mode', 'color').catch(() => undefined);
 
     this.effectFrameIndex = 0;
@@ -229,8 +269,13 @@ export default class BulbDevice extends Homey.Device {
     const tick = async () => {
       const [r, g, b] = rgbFrames[this.effectFrameIndex % rgbFrames.length];
       this.effectFrameIndex++;
+      // Scale by the current dim capability so the slider dims custom shows.
+      const dim = Math.max(0, Math.min(1, (this.getCapabilityValue('dim') as number | null) ?? 1));
+      const sr = Math.round(r * dim);
+      const sg = Math.round(g * dim);
+      const sb = Math.round(b * dim);
       try {
-        await this.client().setColorRgb(device, r, g, b);
+        await this.client().setColorRgb(device, sr, sg, sb);
       } catch (err) {
         this.error('custom effect RGB send failed:', err);
       }
@@ -244,6 +289,18 @@ export default class BulbDevice extends Homey.Device {
     this.effectTimer = setInterval(() => {
       tick().catch((err) => this.error('custom effect tick failed:', err));
     }, intervalMs);
+  }
+
+  private refreshEffectOptions(): void {
+    const shows = (this.getStoreValue('customShows') as CustomLightShow[]) ?? [];
+    const values: { id: string; title: { en: string } }[] = [
+      { id: 'none', title: { en: 'None' } },
+      ...EFFECT_NAMES.map((name) => ({ id: name, title: { en: FACTORY_EFFECT_TITLES[name] } })),
+      ...shows.map((show) => ({ id: customEffectId(show), title: { en: show.name } })),
+    ];
+    this.setCapabilityOptions('cync_effect', { values }).catch((err) =>
+      this.error('setCapabilityOptions(cync_effect) failed:', err),
+    );
   }
 
   private stopEffectAnimation(): void {
