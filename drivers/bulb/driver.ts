@@ -3,6 +3,13 @@ import Homey from 'homey';
 import type CyncApp from '../../app';
 import { CyncAuthError } from '../../lib/cync/auth';
 import { isEffectName } from '../../lib/cync/effects';
+import {
+  estimateWattsActive,
+  estimateWattsIdle,
+  formatModelName,
+  formatSpecsLine,
+  lookupModel,
+} from '../../lib/cync/models';
 import type { CustomLightShow, CyncDevice } from '../../lib/cync/types';
 import type BulbDevice from './device';
 
@@ -15,6 +22,15 @@ interface PairListDevice {
     supportsRgb: boolean;
     supportsColorTemp: boolean;
     customShows: CustomLightShow[];
+    firmwareVersion?: string;
+    deviceType?: number;
+    mac?: string;
+    wifiMac?: string;
+    modelName?: string;
+    modelId?: string;
+    specsLine?: string;
+    wattsActive?: number;
+    wattsIdle?: number;
   };
 }
 
@@ -119,6 +135,7 @@ export default class BulbDriver extends Homey.Driver {
   }
 
   private toPairDevice(bulb: CyncDevice): PairListDevice {
+    const spec = lookupModel(bulb.deviceType);
     return {
       name: bulb.name,
       data: { deviceId: bulb.deviceId },
@@ -128,6 +145,15 @@ export default class BulbDriver extends Homey.Driver {
         supportsRgb: bulb.supportsRgb,
         supportsColorTemp: bulb.supportsColorTemp,
         customShows: bulb.customShows,
+        firmwareVersion: bulb.firmwareVersion,
+        deviceType: bulb.deviceType,
+        mac: bulb.mac,
+        wifiMac: bulb.wifiMac,
+        modelName: formatModelName(spec) || undefined,
+        modelId: spec?.modelId,
+        specsLine: formatSpecsLine(spec) || undefined,
+        wattsActive: estimateWattsActive(spec),
+        wattsIdle: estimateWattsIdle(spec),
       },
     };
   }

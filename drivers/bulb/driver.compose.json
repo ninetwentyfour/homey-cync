@@ -8,7 +8,8 @@
     "light_saturation",
     "light_temperature",
     "light_mode",
-    "cync_effect"
+    "cync_effect",
+    "measure_power"
   ],
   "capabilitiesOptions": {
     "cync_effect": { "title": { "en": "Effect" } }
@@ -20,18 +21,97 @@
     "large": "/drivers/bulb/assets/images/large.png",
     "xlarge": "/drivers/bulb/assets/images/xlarge.png"
   },
+  "energy": {
+    "approximation": {
+      "usageOn": 9,
+      "usageOff": 0.5
+    }
+  },
   "pair": [
-    {
-      "id": "login"
-    },
-    {
-      "id": "otp"
-    },
+    { "id": "login" },
+    { "id": "otp" },
     {
       "id": "list_devices",
       "template": "list_devices",
       "navigation": { "next": "add_devices" }
     },
     { "id": "add_devices", "template": "add_devices" }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": { "en": "Device info" },
+      "children": [
+        {
+          "id": "model_name",
+          "type": "label",
+          "label": { "en": "Model" },
+          "value": "—"
+        },
+        {
+          "id": "model_sku",
+          "type": "label",
+          "label": { "en": "SKU" },
+          "value": "—"
+        },
+        {
+          "id": "firmware_version",
+          "type": "label",
+          "label": { "en": "Firmware version" },
+          "value": "—"
+        },
+        {
+          "id": "device_type",
+          "type": "label",
+          "label": { "en": "Device type ID" },
+          "value": "—"
+        },
+        {
+          "id": "mac",
+          "type": "label",
+          "label": { "en": "Bulb MAC" },
+          "value": "—"
+        },
+        {
+          "id": "wifi_mac",
+          "type": "label",
+          "label": { "en": "Wi-Fi MAC" },
+          "value": "—"
+        },
+        {
+          "id": "power_active",
+          "type": "label",
+          "label": { "en": "Power (in use)" },
+          "value": "—"
+        },
+        {
+          "id": "power_idle",
+          "type": "label",
+          "label": { "en": "Power (standby)" },
+          "value": "—"
+        },
+        {
+          "id": "specs",
+          "type": "label",
+          "label": { "en": "Optical" },
+          "value": "—"
+        },
+        {
+          "id": "last_refreshed",
+          "type": "label",
+          "label": { "en": "Last refreshed" },
+          "value": "—"
+        },
+        {
+          "id": "refresh_info",
+          "type": "checkbox",
+          "label": { "en": "Refresh device info" },
+          "hint": {
+            "en": "Toggle on and save to re-fetch firmware, model, MAC, and power details from the Cync cloud. Resets itself after refresh."
+          },
+          "value": false
+        }
+      ]
+    }
   ]
 }

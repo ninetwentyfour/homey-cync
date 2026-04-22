@@ -141,6 +141,13 @@ export class CyncClient extends EventEmitter {
       }));
       this.logger.log(`home ${home.id}: ${homeShows.length} custom light shows`);
       const meshBulbs = (property.bulbsArray ?? []).filter((b) => 'switchID' in b);
+      if (meshBulbs.length > 0) {
+        const first = meshBulbs[0] as unknown as Record<string, unknown>;
+        this.logger.log(`home ${home.id}: first bulb keys=${Object.keys(first).join(',')}`);
+        this.logger.log(
+          `home ${home.id}: first bulb firmwareVersion=${String(first.firmwareVersion)} deviceType=${String(first.deviceType)} mac=${String(first.mac)} wifiMac=${String(first.wifiMac)}`,
+        );
+      }
       for (const mesh of meshBulbs) {
         const match = subscribe.find((s) => s.id === mesh.switchID);
         if (!match) continue;
@@ -155,6 +162,10 @@ export class CyncClient extends EventEmitter {
           supportsColorTemp: mesh.supports_cct ?? true,
           supportsDim: mesh.supports_brightness ?? true,
           customShows: homeShows,
+          firmwareVersion: mesh.firmwareVersion,
+          deviceType: mesh.deviceType,
+          mac: mesh.mac,
+          wifiMac: mesh.wifiMac,
         });
       }
     }
@@ -382,4 +393,8 @@ interface MeshDevice {
   supports_rgb?: boolean;
   supports_cct?: boolean;
   supports_brightness?: boolean;
+  firmwareVersion?: string;
+  deviceType?: number;
+  mac?: string;
+  wifiMac?: string;
 }

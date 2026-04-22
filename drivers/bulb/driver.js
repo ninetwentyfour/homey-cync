@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const homey_1 = __importDefault(require("homey"));
 const auth_1 = require("../../lib/cync/auth");
 const effects_1 = require("../../lib/cync/effects");
+const models_1 = require("../../lib/cync/models");
 class BulbDriver extends homey_1.default.Driver {
     async onInit() {
         this.log('BulbDriver init');
@@ -100,6 +101,7 @@ class BulbDriver extends homey_1.default.Driver {
         });
     }
     toPairDevice(bulb) {
+        const spec = (0, models_1.lookupModel)(bulb.deviceType);
         return {
             name: bulb.name,
             data: { deviceId: bulb.deviceId },
@@ -109,6 +111,15 @@ class BulbDriver extends homey_1.default.Driver {
                 supportsRgb: bulb.supportsRgb,
                 supportsColorTemp: bulb.supportsColorTemp,
                 customShows: bulb.customShows,
+                firmwareVersion: bulb.firmwareVersion,
+                deviceType: bulb.deviceType,
+                mac: bulb.mac,
+                wifiMac: bulb.wifiMac,
+                modelName: (0, models_1.formatModelName)(spec) || undefined,
+                modelId: spec?.modelId,
+                specsLine: (0, models_1.formatSpecsLine)(spec) || undefined,
+                wattsActive: (0, models_1.estimateWattsActive)(spec),
+                wattsIdle: (0, models_1.estimateWattsIdle)(spec),
             },
         };
     }

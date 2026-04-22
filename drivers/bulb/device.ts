@@ -3,6 +3,14 @@ import Homey from 'homey';
 import type CyncApp from '../../app';
 import { CyncClient } from '../../lib/cync/CyncClient';
 import { EFFECT_NAMES, isEffectName } from '../../lib/cync/effects';
+import {
+  estimateWattsActive,
+  estimateWattsIdle,
+  formatModelName,
+  formatSpecsLine,
+  formatWatts,
+  lookupModel,
+} from '../../lib/cync/models';
 import type { CustomLightShow, CyncDevice, DeviceState, EffectName } from '../../lib/cync/types';
 
 const FACTORY_EFFECT_TITLES: Record<EffectName, string> = {
@@ -135,6 +143,15 @@ export default class BulbDevice extends Homey.Device {
     const data = this.getData() as { deviceId: number };
     this.log(`BulbDevice init deviceId=${data.deviceId}`);
 
+    // Backfill measure_power for devices paired before this capability existed.
+    if (!this.hasCapability('measure_power')) {
+      try {
+        await this.addCapability('measure_power');
+      } catch (err) {
+        this.error('addCapability(measure_power) failed:', err);
+      }
+    }
+
     this.registerCapabilityListener('onoff', async (value: boolean) => {
       this.stopEffectAnimation();
       await this.client().setPower(this.asCyncDevice(), value);
@@ -184,6 +201,21 @@ export default class BulbDevice extends Homey.Device {
       500,
     );
 
+    this.registerCapabilityListener('light_mode', async (value: string) => {
+      this.stopEffectAnimation();
+      const device = this.asCyncDevice();
+      if (value === 'temperature') {
+        const temp = (this.getCapabilityValue('light_temperature') as number | null) ?? 0.5;
+        const pct = Math.round((1 - temp) * 100);
+        await this.client().setColorTemp(device, pct);
+      } else if (value === 'color') {
+        const dim = (this.getCapabilityValue('dim') as number | null) ?? 1;
+        const [r, g, b] = hsvToRgb(this.lastHue, this.lastSaturation, dim);
+        await this.client().setColorRgb(device, r, g, b);
+      }
+      await this.setCapabilityValue('cync_effect', 'none').catch(() => undefined);
+    });
+
     this.registerCapabilityListener('cync_effect', async (value: string) => {
       const device = this.asCyncDevice();
       if (value === 'none') {
@@ -232,6 +264,143 @@ export default class BulbDevice extends Homey.Device {
     } catch (err) {
       this.error('Cync client unavailable at onInit:', err);
       await this.setUnavailable('Cync service is reconnecting…');
+    }
+
+    this.syncDeviceInfoSettings().catch((err) => this.error('syncDeviceInfoSettings failed:', err));
+    this.reportPower().catch((err) => this.error('reportPower failed:', err));
+  }
+
+  override async onAdded(): Promise<void> {
+    await this.syncDeviceInfoSettings();
+    await this.reportPower();
+  }
+
+  override async onSettings({
+    changedKeys,
+  }: {
+    oldSettings: Record<string, unknown>;
+    newSettings: Record<string, unknown>;
+    changedKeys: string[];
+  }): Promise<string | void> {
+    this.log(`onSettings fired: changedKeys=${JSON.stringify(changedKeys)}`);
+    if (!changedKeys.includes('refresh_info')) return;
+    try {
+      await this.refreshFromCloud();
+    } catch (err) {
+      this.error('refreshFromCloud failed:', err);
+      // Homey forbids setSettings during onSettings; defer the toggle reset.
+      setTimeout(() => {
+        this.setSettings({ refresh_info: false }).catch(() => undefined);
+      }, 100);
+      throw err instanceof Error ? err : new Error(String(err));
+    }
+    // Stores were updated in refreshFromCloud; defer label + energy + toggle
+    // writes until after onSettings returns (SDK guards against re-entrant
+    // setSettings/setEnergy).
+    setTimeout(() => {
+      this.syncDeviceInfoSettings({ refresh_info: false }).catch((e) =>
+        this.error('post-refresh syncDeviceInfoSettings failed:', e),
+      );
+      this.reportPower().catch((e) => this.error('post-refresh reportPower failed:', e));
+    }, 100);
+    return 'Device info refreshed — close and reopen this screen to see the new values.';
+  }
+
+  private async refreshFromCloud(): Promise<void> {
+    const app = this.homey.app as CyncApp;
+    const client = app.getClient();
+    const deviceId = (this.getData() as { deviceId: number }).deviceId;
+    this.log(`refreshFromCloud: querying Cync for deviceId=${deviceId}`);
+    const bulbs = await client.listDevices();
+    const fresh = bulbs.find((b) => b.deviceId === deviceId);
+    if (!fresh) {
+      this.error(
+        `refreshFromCloud: deviceId=${deviceId} not in cloud response (got ${bulbs.length} bulbs)`,
+      );
+      throw new Error('Device not found in your Cync account — was it removed?');
+    }
+    this.log(
+      `refreshFromCloud: firmware=${String(fresh.firmwareVersion)} deviceType=${String(fresh.deviceType)} mac=${String(fresh.mac)} wifiMac=${String(fresh.wifiMac)}`,
+    );
+    const spec = lookupModel(fresh.deviceType);
+    await this.setStoreValue('homeHubId', fresh.homeHubId);
+    await this.setStoreValue('meshId', fresh.meshId);
+    await this.setStoreValue('supportsRgb', fresh.supportsRgb);
+    await this.setStoreValue('supportsColorTemp', fresh.supportsColorTemp);
+    await this.setStoreValue('customShows', fresh.customShows);
+    await this.setStoreValue('firmwareVersion', fresh.firmwareVersion);
+    await this.setStoreValue('deviceType', fresh.deviceType);
+    await this.setStoreValue('mac', fresh.mac);
+    await this.setStoreValue('wifiMac', fresh.wifiMac);
+    await this.setStoreValue('modelName', formatModelName(spec) || undefined);
+    await this.setStoreValue('modelId', spec?.modelId);
+    await this.setStoreValue('specsLine', formatSpecsLine(spec) || undefined);
+    await this.setStoreValue('wattsActive', estimateWattsActive(spec));
+    await this.setStoreValue('wattsIdle', estimateWattsIdle(spec));
+    this.refreshEffectOptions();
+    // Note: caller is responsible for syncDeviceInfoSettings + syncEnergy —
+    // skipped here because onSettings forbids re-entrant setSettings/setEnergy.
+  }
+
+  /**
+   * Compute instantaneous wattage from current on/dim state and publish to
+   * measure_power. Homey SDK does not let us override energy.approximation
+   * per-device, but a measure_power capability overrides approximation in the
+   * Energy dashboard — so we just calculate it ourselves.
+   *
+   * Formula: isOn ? wattsActive * dim : wattsIdle.
+   * dim slider already represents 0..1 fractional brightness.
+   */
+  private async reportPower(): Promise<void> {
+    if (!this.hasCapability('measure_power')) return;
+    const wattsActive = this.getStoreValue('wattsActive') as number | null | undefined;
+    const wattsIdle = this.getStoreValue('wattsIdle') as number | null | undefined;
+    const isOn = (this.getCapabilityValue('onoff') as boolean | null) ?? false;
+    const dim = (this.getCapabilityValue('dim') as number | null) ?? 1;
+    const active = wattsActive ?? 9;
+    const idle = wattsIdle ?? 0.5;
+    const watts = isOn ? Math.max(0, active * dim) : idle;
+    const rounded = Math.round(watts * 10) / 10;
+    try {
+      await this.setCapabilityValue('measure_power', rounded);
+    } catch (err) {
+      this.error('setCapabilityValue(measure_power) failed:', err);
+    }
+  }
+
+  private async syncDeviceInfoSettings(
+    extra?: Record<string, boolean | string | number>,
+  ): Promise<void> {
+    const get = (key: string): unknown => this.getStoreValue(key);
+    const deviceType = get('deviceType') as number | null | undefined;
+    const wattsActive = get('wattsActive') as number | null | undefined;
+    const wattsIdle = get('wattsIdle') as number | null | undefined;
+    const firmware = get('firmwareVersion') as string | null | undefined;
+    const mac = get('mac') as string | null | undefined;
+    const formattedMac = mac && mac.length === 12 ? mac.match(/.{2}/g)?.join(':') : mac;
+    const modelNameRaw = get('modelName');
+    const modelDisplay =
+      modelNameRaw != null && modelNameRaw !== ''
+        ? String(modelNameRaw)
+        : deviceType != null
+          ? `Unknown (device type ${deviceType})`
+          : '—';
+    try {
+      await this.setSettings({
+        model_name: modelDisplay,
+        model_sku: displayString(get('modelId')),
+        firmware_version: displayString(firmware),
+        device_type: deviceType == null ? '—' : String(deviceType),
+        mac: displayString(formattedMac),
+        wifi_mac: displayString(get('wifiMac')),
+        power_active: wattsActive == null ? '—' : formatWatts(wattsActive),
+        power_idle: wattsIdle == null ? '—' : formatWatts(wattsIdle),
+        specs: displayString(get('specsLine')),
+        last_refreshed: firmware ? new Date().toISOString() : '—',
+        ...extra,
+      });
+    } catch (err) {
+      this.error('setSettings(device info) failed:', err);
     }
   }
 
@@ -357,6 +526,7 @@ export default class BulbDevice extends Homey.Device {
       await this.setCapabilityIfChanged('light_temperature', 1 - state.colorMode / 100);
       await this.setCapabilityIfChanged('light_mode', 'temperature');
     }
+    await this.reportPower();
   }
 
   private async setCapabilityIfChanged(capability: string, value: unknown): Promise<void> {
@@ -371,6 +541,11 @@ export default class BulbDevice extends Homey.Device {
 }
 
 module.exports = BulbDevice;
+
+function displayString(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—';
+  return String(v);
+}
 
 function hexToRgb(hex: string): [number, number, number] {
   const clean = hex.replace(/^#/, '').trim();

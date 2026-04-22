@@ -24,6 +24,14 @@ export interface CyncDevice {
   supportsDim: boolean;
   /** User-created light shows from the Cync app; shared across the home. */
   customShows: CustomLightShow[];
+  /** Firmware version from the REST property endpoint (e.g. "1.0.315"). */
+  firmwareVersion?: string;
+  /** 1-byte Cync device type id — see lib/cync/models.ts for lookup. */
+  deviceType?: number;
+  /** Bulb radio MAC (12 hex chars, unformatted). */
+  mac?: string;
+  /** Wi-Fi MAC, only present on Wi-Fi-capable bulbs (colon-separated). */
+  wifiMac?: string;
 }
 
 export interface CustomLightShow {
